@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Rastreador de Tarefas",
+  "version": "1.0",
+  "description": "Registra horários de entrada, saída, clientes e tarefas.",
+  "permissions": ["storage"],
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  }
+}

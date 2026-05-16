@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Histórico de Tarefas</title>
+  <style>
+    :root {
+      --primary-color: #4e54c8;
+      --secondary-color: #8f94fb;
+      --bg-color: #f4f7f6;
+      --text-color: #333;
+    }
+    
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-color); color: var(--text-color); padding: 30px; max-width: 1200px; margin: auto; }
+    h2 { text-align: center; color: var(--primary-color); font-size: 28px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* --- PAINEL DE FILTROS --- */
+    .filtros-container { background: #fff; padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: flex-start; }
+    
+    .filtro-grupo { display: flex; gap: 10px; flex: 1; min-width: 300px; margin-left: 10px;}
+    .filtro-grupo input, .filtro-grupo select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; flex: 1; transition: border-color 0.3s; background-color: #fff; color: var(--text-color); font-family: inherit; cursor: pointer; }
+    .filtro-grupo input:focus, .filtro-grupo select:focus { border-color: var(--primary-color); outline: none; }
+
+    .filtro-botoes { display: flex; gap: 8px; flex-wrap: wrap; align-items: center;}
+    .btn-filtro { background-color: #e2e8f0; color: #475569; border: none; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+    .btn-filtro:hover, .btn-filtro.ativo { background-color: var(--primary-color); color: white; transform: translateY(-2px); }
+    .btn-limpar { background-color: #cbd5e1; color: #334155; }
+    .btn-limpar:hover { background-color: #94a3b8; color: white; }
+
+    /* Estilos extras para Exportar e Importar nos Modais */
+    .btn-exportar { background-color: #8b5cf6; color: white; }
+    .btn-exportar:hover { background-color: #7c3aed; }
+    .btn-importar { background-color: #f59e0b; color: white; }
+    .btn-importar:hover { background-color: #d97706; }
+
+    /* --- ESTILOS DO MENU SUSPENSO (DROPDOWN) --- */
+    .dropdown { position: relative; display: inline-block; }
+    
+    .btn-menu { 
+      background-color: #3b82f6; 
+      color: white; 
+      font-size: 20px; 
+      padding: 10px 18px; 
+      border-radius: 8px;
+      min-width: 55px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-menu:hover { background-color: #2563eb; }
+    
+    .dropdown-content { 
+      display: none; 
+      position: absolute; 
+      left: 0; 
+      background-color: #ffffff; 
+      min-width: 240px; 
+      box-shadow: 0px 10px 30px rgba(0,0,0,0.15); 
+      z-index: 10; 
+      border-radius: 8px; 
+      overflow: hidden; 
+      margin-top: 10px; 
+      border: 1px solid #eaeaea; 
+    }
+    .dropdown-content a { color: #444; padding: 14px 18px; text-decoration: none; display: block; font-size: 13px; font-weight: 600; border-bottom: 1px solid #f0f0f0; transition: background 0.2s, padding-left 0.2s;}
+    .dropdown-content a:last-child { border-bottom: none; }
+    .dropdown-content a:hover { background-color: #f8f9fa; color: var(--primary-color); padding-left: 24px; }
+    
+    .dropdown-content a.btn-apagar:hover { background-color: #fff0f3; color: #d90429 !important; }
+    
+    .show-dropdown { display: block; animation: animarMenu 0.3s ease forwards; }
+    @keyframes animarMenu { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* --- TABELA PRINCIPAL --- */
+    .table-container { background: #fff; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eaeaea; font-size: 13px;}
+    th { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; font-weight: 600; text-transform: uppercase; font-size: 13px; }
+    tbody tr:hover { background-color: #f9faff; transition: background 0.3s ease; }
+    tbody tr:last-child td { border-bottom: none; }
+
+    button { cursor: pointer; padding: 6px 12px; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; transition: all 0.3s ease; }
+    .btn-acoes { display: flex; gap: 5px; flex-wrap: wrap;}
+    .btn-editar { background-color: #ffb703; color: #fff; }
+    .btn-editar:hover { background-color: #fb8500; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(251, 133, 0, 0.3); }
+    .btn-excluir { background-color: #ef476f; color: white; }
+    .btn-excluir:hover { background-color: #d90429; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(217, 4, 41, 0.3); }
+
+    /* --- MODAIS COMUNS --- */
+    dialog { padding: 25px; border: none; border-radius: 12px; width: 440px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    dialog::backdrop { background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); }
+    dialog h3 { margin-top: 0; color: var(--primary-color); border-bottom: 2px solid #eaeaea; padding-bottom: 10px; }
+    dialog label { display: block; margin-top: 12px; font-size: 14px; font-weight: 600; color: #555; }
+    dialog input, dialog textarea { width: 100%; margin-top: 6px; box-sizing: border-box; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; }
+    dialog input:focus, dialog textarea:focus { border-color: var(--primary-color); outline: none; }
+    dialog textarea { resize: vertical; min-height: 80px;}
+    dialog .btn-row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; align-items: center; }
+    
+    .btn-salvar-modal { background: #06d6a0; color: white; padding: 8px 16px; font-size: 13px;}
+    .btn-salvar-modal:hover { background: #05b083; transform: translateY(-2px); }
+    .btn-fechar { background: #95a5a6; color: white; }
+    .btn-fechar:hover { background: #7f8c8d; transform: translateY(-2px); }
+
+    .add-row { display: flex; gap: 8px; margin-bottom: 15px; align-items: stretch; flex-wrap: wrap;}
+    .add-row input { flex: 1; margin: 0; min-width: 100%;}
+    .add-row button { width: 100%; margin: 0;}
+    .lista-gerenciar { list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; background: #fff;}
+    .lista-gerenciar li { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 13px; color: #555;}
+    .lista-gerenciar li:last-child { border-bottom: none; }
+    .btn-excluir-item { background: none; border: none; color: #ef476f; cursor: pointer; padding: 4px; box-shadow: none; width: auto; font-size: 12px; border-radius: 4px;}
+    .btn-excluir-item:hover { color: white; background: #ef476f; transform: none; box-shadow: none; }
+
+    .linha-datas { display: flex; gap: 10px; margin-bottom: 15px; }
+    .col-data { flex: 1; }
+    .btn-gerar { background-color: var(--primary-color); color: white; width: 100%; padding: 10px; margin-bottom: 15px; font-size: 14px; }
+    .btn-gerar:hover { background-color: #3b409c; }
+    .resultado-box { background: #f8f9fa; border-radius: 8px; padding: 15px; max-height: 200px; overflow-y: auto; border: 1px solid #e9ecef; }
+    .item-resultado { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #dee2e6; font-size: 14px; }
+    .item-resultado:last-child { border-bottom: none; }
+    .nome-cliente { font-weight: 600; color: #495057; }
+    .tempo-cliente { font-weight: bold; color: var(--primary-color); }
+    .vazio { text-align: center; padding: 30px; color: #888; font-style: italic; }
+  </style>
+</head>
+<body>
+  <h2>Histórico de Tarefas</h2>
+  
+  <div class="filtros-container">
+    
+    <!-- MENU SUSPENSO NA EXTREMA ESQUERDA -->
+    <div class="dropdown">
+      <button id="btnMenuDropdown" class="btn-filtro btn-menu" title="Opções">☰</button>
+      <div id="dropdownMenu" class="dropdown-content">
+        <a href="#" id="menuRelatorio">📊 Relatório de Horas</a>
+        <a href="#" id="menuClientes">👥 Gerenciar Clientes</a>
+        <a href="#" id="menuProjetos">📁 Gerenciar Projetos</a>
+        <a href="#" id="menuExportar">📤 Exportar Histórico Completo</a>
+        <a href="#" id="menuImportar">📥 Importar Histórico Completo</a>
+        <a href="#" id="menuLimparHistorico" class="btn-apagar" style="color: #ef476f; border-top: 1px solid #eaeaea;">🗑️ Apagar Todo o Histórico</a>
+      </div>
+    </div>
+    
+    <!-- ÁREA DE PESQUISA -->
+    <div class="filtro-grupo">
+      <select id="filtroCliente">
+        <option value="">🔍 Todos os clientes</option>
+      </select>
+      <input type="date" id="filtroData">
+    </div>
+    
+    <!-- BOTÕES DE FILTRAGEM -->
+    <div class="filtro-botoes">
+      <button id="btnHoje" class="btn-filtro">Hoje</button>
+      <button id="btnMes" class="btn-filtro">Este Mês</button>
+      <button id="btnAno" class="btn-filtro">Este Ano</button>
+      <button id="btnLimpar" class="btn-filtro btn-limpar">Limpar Filtros</button>
+      <input type="file" id="inputImportarFile" accept=".json" style="display: none;">
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Entrada</th>
+          <th>Saída</th>
+          <th>Cliente</th>
+          <th>Projeto</th>
+          <th>Desc. Projeto</th>
+          <th>Desc. Tarefa</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaCorpo"></tbody>
+    </table>
+  </div>
+
+  <!-- Modal Edição -->
+  <dialog id="modalEdicao">
+    <h3>Editar Tarefa</h3>
+    <input type="hidden" id="editId">
+    <label>Data:</label> <input type="date" id="editData">
+    <div style="display: flex; gap: 10px;">
+      <div style="flex:1"><label>Entrada:</label> <input type="time" id="editHoraEntrada"></div>
+      <div style="flex:1"><label>Saída:</label> <input type="time" id="editHoraSaida"></div>
+    </div>
+    <label>Cliente:</label> <input type="text" id="editCliente">
+    <label>Código do Projeto:</label> <input type="text" id="editProjeto" placeholder="Ex: PRJ-01">
+    <label>Descrição da Tarefa:</label> <textarea id="editDescricao"></textarea>
+    <div class="btn-row">
+      <button id="btnCancelarEdicao" class="btn-fechar">Cancelar</button>
+      <button id="btnSalvarEdicao" class="btn-salvar-modal">Salvar Alterações</button>
+    </div>
+  </dialog>
+
+  <!-- Modal Relatório -->
+  <dialog id="modalRelatorio">
+    <h3>Relatório por Cliente</h3>
+    <div class="linha-datas">
+      <div class="col-data"><label>Data Início:</label> <input type="date" id="relDataInicio"></div>
+      <div class="col-data"><label>Data Fim:</label> <input type="date" id="relDataFim"></div>
+    </div>
+    <button id="btnGerarRelatorio" class="btn-gerar">Calcular Horas</button>
+    <div id="resultadoRelatorio" class="resultado-box">
+      <div class="vazio" style="padding: 10px;">Selecione o período e clique em calcular.</div>
+    </div>
+    <div class="btn-row">
+      <button id="btnFecharRelatorio" class="btn-fechar">Fechar</button>
+    </div>
+  </dialog>
+
+  <!-- Modal Gerenciar Clientes -->
+  <dialog id="modalClientesHist">
+    <h3>Gerenciar Clientes Cadastrados</h3>
+    <div class="add-row" style="flex-wrap: nowrap;">
+      <input type="text" id="inputNomeCliente" placeholder="Adicionar novo cliente..." style="min-width: auto;">
+      <button id="btnSalvarCliente" class="btn-salvar-modal" style="width: auto; margin:0;">Salvar</button>
+    </div>
+    <ul id="ulClientesGerenciar" class="lista-gerenciar"></ul>
+    
+    <!-- Novo Rodapé com Exportar e Importar -->
+    <div class="btn-row" style="justify-content: space-between;">
+      <div style="display: flex; gap: 8px;">
+        <button id="btnExportarClientes" class="btn-filtro btn-exportar" style="margin: 0; padding: 8px 12px;" title="Exportar Clientes">📤 Exportar</button>
+        <button id="btnImportarClientes" class="btn-filtro btn-importar" style="margin: 0; padding: 8px 12px;" title="Importar Clientes">📥 Importar</button>
+        <input type="file" id="inputImportarClientesFile" accept=".json" style="display: none;">
+      </div>
+      <button id="btnFecharClientesHist" class="btn-fechar">Concluir</button>
+    </div>
+  </dialog>
+
+  <!-- Modal Gerenciar Projetos -->
+  <dialog id="modalProjetosHist">
+    <h3>Gerenciar Projetos Salvos</h3>
+    <div class="add-row">
+      <input type="text" id="inputCodigoProj" placeholder="Código do Projeto (Ex: PRJ-01)">
+      <input type="text" id="inputDescProj" placeholder="Descrição do Projeto">
+      <button id="btnSalvarProj" class="btn-salvar-modal">Salvar Projeto</button>
+    </div>
+    <ul id="ulProjetosGerenciar" class="lista-gerenciar"></ul>
+    
+    <!-- Novo Rodapé com Exportar e Importar -->
+    <div class="btn-row" style="justify-content: space-between;">
+      <div style="display: flex; gap: 8px;">
+        <button id="btnExportarProjetos" class="btn-filtro btn-exportar" style="margin: 0; padding: 8px 12px;" title="Exportar Projetos">📤 Exportar</button>
+        <button id="btnImportarProjetos" class="btn-filtro btn-importar" style="margin: 0; padding: 8px 12px;" title="Importar Projetos">📥 Importar</button>
+        <input type="file" id="inputImportarProjetosFile" accept=".json" style="display: none;">
+      </div>
+      <button id="btnFecharProjetosHist" class="btn-fechar">Concluir</button>
+    </div>
+  </dialog>
+
+  <script src="history.js"></script>
+</body>
+</html>
