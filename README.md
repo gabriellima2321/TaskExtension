@@ -36,7 +36,7 @@ Por ser uma extensão em ambiente de desenvolvimento, você pode carregá-la dir
 
 1. Faça o clone deste repositório ou baixe o arquivo `.zip` dos códigos:
    ```bash
-   git clone [https://github.com/seu-usuario/seu-repositorio.git](https://github.com/seu-usuario/seu-repositorio.git)
+   git clone [https://github.com/gabriellima2321/TaskExtension.git](https://github.com/gabriellima2321/TaskExtension.git)
    Aqui está um modelo completo, bem estruturado e detalhado para o seu **`README.md`**. Ele foi pensado exatamente no padrão que a comunidade do GitHub adora: limpo, organizado com emojis, escaneável e muito explicativo tecnicamente.
 
 ---
