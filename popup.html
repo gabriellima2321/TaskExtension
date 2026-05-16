@@ -3,81 +3,79 @@
 <head>
   <meta charset="UTF-8">
   <title>Registrar Tarefa</title>
+  <!-- CHAMADA DO CSS EXTERNO -->
   <link rel="stylesheet" href="./static/popup.css">
 </head>
 <body>
-  <h3>Registrar Tarefa</h3>
-  
+
+  <h3>Apontamento de Horas</h3>
+
   <div class="form-group">
-    <label>Data:</label> 
+    <label>Data:</label>
     <input type="date" id="data">
   </div>
-  
-  <div class="row-horas">
-    <div class="col-hora">
-      <label>Hora Entrada:</label> 
+
+  <div class="row">
+    <div class="form-group flex-1">
+      <label>Entrada:</label>
       <input type="time" id="horaEntrada">
     </div>
-    <div class="col-hora">
-      <label>Hora Saída:</label> 
+    <div class="form-group flex-1">
+      <label>Saída:</label>
       <input type="time" id="horaSaida">
     </div>
   </div>
-  
+
   <div class="form-group">
-    <label>Cliente:</label> 
-    <div class="row-input-dots">
+    <label>Cliente:</label>
+    <div style="display: flex; gap: 5px;">
       <input type="text" id="cliente" list="listaClientes" placeholder="Selecione ou digite...">
       <datalist id="listaClientes"></datalist>
-      <button id="btnGerenciarClientes" class="btn-dots" title="Gerenciar clientes">⋮</button>
+      <button id="btnGerenciarClientes" class="btn-icon" title="Gerenciar Clientes">👥</button>
     </div>
   </div>
 
-  <!-- NOVO CAMPO: PROJETO -->
   <div class="form-group">
-    <label>Código do Projeto:</label> 
-    <div class="row-input-dots">
-      <input type="text" id="projeto" list="listaProjetos" placeholder="Código (Ex: PRJ-01)">
+    <label>Código do Projeto:</label>
+    <div style="display: flex; gap: 5px;">
+      <input type="text" id="projeto" list="listaProjetos" placeholder="Ex: PRJ-01 (Opcional)">
       <datalist id="listaProjetos"></datalist>
-      <button id="btnGerenciarProjetos" class="btn-dots" title="Gerenciar projetos">⋮</button>
+      <button id="btnGerenciarProjetos" class="btn-icon" title="Gerenciar Projetos">📁</button>
     </div>
   </div>
-  
+
   <div class="form-group">
-    <label>Descrição da Tarefa:</label> 
-    <textarea id="descricao" placeholder="O que foi desenvolvido?"></textarea>
+    <label>Descrição da Tarefa:</label>
+    <textarea id="descricao" placeholder="O que você desenvolveu?..."></textarea>
   </div>
 
-  <button id="btnSalvar" class="btn-salvar">Salvar Tarefa</button>
-  <button id="btnHistorico" class="btn-historico">Abrir Histórico</button>
+  <div class="btn-block">
+    <button id="btnHistorico" class="btn-secondary">Histórico</button>
+    <button id="btnSalvar" class="btn-primary">Salvar Registro</button>
+  </div>
 
-  <div id="mensagemSucesso">Tarefa salva com sucesso!</div>
+  <div id="mensagemSucesso">✓ Tarefa registrada com sucesso!</div>
 
-  <!-- Modal Clientes -->
+  <!-- Modal Gerenciar Clientes -->
   <dialog id="modalGerenciar">
-    <h3>Gerenciar Clientes</h3>
-    <div class="add-row" style="flex-wrap: nowrap;">
-      <input type="text" id="inputNomeCliente" placeholder="Adicionar novo..." style="min-width: auto;">
-      <button id="btnSalvarCliente" class="btn-salvar" style="width: auto;">Salvar</button>
+    <label>Cadastrar Cliente:</label>
+    <div style="display: flex; gap: 5px; margin-bottom: 8px;">
+      <input type="text" id="inputNomeCliente" placeholder="Nome do cliente...">
+      <button id="btnSalvarCliente" class="btn-primary" style="padding:4px 10px;">+</button>
     </div>
     <ul id="ulClientesGerenciar" class="lista-gerenciar"></ul>
-    <div class="btn-row">
-      <button id="btnFecharGerenciar" class="btn-fechar">Fechar</button>
-    </div>
+    <button id="btnFecharGerenciar" class="btn-secondary" style="width:100%; margin-top:10px;">Fechar</button>
   </dialog>
 
-  <!-- NOVO MODAL: PROJETOS -->
+  <!-- Modal Gerenciar Projetos -->
   <dialog id="modalProjetos">
-    <h3>Gerenciar Projetos</h3>
-    <div class="add-row">
-      <input type="text" id="inputCodigoProj" placeholder="Código (Ex: PRJ-01)">
-      <input type="text" id="inputDescProj" placeholder="Descrição do Projeto">
-      <button id="btnSalvarProj" class="btn-salvar">Salvar Projeto</button>
-    </div>
+    <label>Código:</label>
+    <input type="text" id="inputCodigoProj" placeholder="Ex: PRJ-01" style="margin-bottom:5px;">
+    <label>Descrição:</label>
+    <input type="text" id="inputDescProj" placeholder="Ex: App Android" style="margin-bottom:8px;">
+    <button id="btnSalvarProj" class="btn-primary" style="width:100%; margin-bottom:5px;">Salvar Projeto</button>
     <ul id="ulProjetosGerenciar" class="lista-gerenciar"></ul>
-    <div class="btn-row">
-      <button id="btnFecharProjetos" class="btn-fechar">Fechar</button>
-    </div>
+    <button id="btnFecharProjetos" class="btn-secondary" style="width:100%; margin-top:5px;">Fechar</button>
   </dialog>
 
   <script src="./static/popup.js"></script>

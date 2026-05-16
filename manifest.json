@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Rastreador de Tarefas",
-  "version": "1.0.2",
+  "name": "Apontamento de Horas",
+  "version": "1.0.6",
   "description": "Registra horários de entrada, saída, clientes e tarefas.",
   "permissions": ["storage"],
   "icons": {
