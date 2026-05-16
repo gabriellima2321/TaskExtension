@@ -9,27 +9,52 @@ const selectFiltroCliente = document.getElementById('filtroCliente');
 const inputFiltroData = document.getElementById('filtroData');
 const botoesFiltro = document.querySelectorAll('.btn-filtro:not(.btn-limpar):not(.btn-menu)');
 
-// ---- LÓGICA DO MENU SUSPENSO (DROPDOWN E ANIMAÇÃO) ----
+// ---- LÓGICA DO MENU SUSPENSO ----
 const btnMenuDropdown = document.getElementById('btnMenuDropdown');
 const dropdownMenu = document.getElementById('dropdownMenu');
 
 btnMenuDropdown.addEventListener('click', (e) => {
   e.stopPropagation();
   dropdownMenu.classList.toggle('show-dropdown');
-  
   if (dropdownMenu.classList.contains('show-dropdown')) {
     btnMenuDropdown.innerHTML = '☰ <span style="font-size: 15px; font-weight: bold;">Menu</span>';
   } else {
     btnMenuDropdown.innerHTML = '☰';
   }
 });
-
 window.addEventListener('click', () => {
   if (dropdownMenu.classList.contains('show-dropdown')) {
     dropdownMenu.classList.remove('show-dropdown');
     btnMenuDropdown.innerHTML = '☰';
   }
 });
+
+// ---- CARREGAR LISTAS PARA O MODAL DE EDIÇÃO ----
+function atualizarListasEdicao() {
+  chrome.storage.local.get({clientes: [], projetos: []}, (result) => {
+    const dlClientes = document.getElementById('editListaClientes');
+    const dlProjetos = document.getElementById('editListaProjetos');
+    
+    // Atualiza opções de Clientes
+    dlClientes.innerHTML = '';
+    const clientesOrd = result.clientes.sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
+    clientesOrd.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c;
+      dlClientes.appendChild(opt);
+    });
+
+    // Atualiza opções de Projetos
+    dlProjetos.innerHTML = '';
+    const projetosOrd = result.projetos.sort((a, b) => a.codigo.localeCompare(b.codigo, 'pt-BR', { sensitivity: 'base' }));
+    projetosOrd.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.codigo;
+      opt.textContent = p.descricao;
+      dlProjetos.appendChild(opt);
+    });
+  });
+}
 
 // ---- FILTRO DE CLIENTES PRINCIPAL ----
 function carregarFiltroClientes() {
@@ -211,22 +236,15 @@ document.getElementById('menuRelatorio').addEventListener('click', (e) => {
   e.preventDefault();
   document.getElementById('resultadoRelatorio').innerHTML = '<div class="vazio" style="padding: 10px;">Clique em calcular para processar os dados do período.</div>';
   
-  // LÓGICA NOVA: Puxar primeiro e último dia do mês atual
   const hoje = new Date();
   const ano = hoje.getFullYear();
-  const mes = hoje.getMonth(); // O mês em Javascript começa em 0 (Janeiro)
-
-  // Formata o primeiro dia (sempre será 01)
+  const mes = hoje.getMonth(); 
   const dataInicio = `${ano}-${String(mes + 1).padStart(2, '0')}-01`;
-  
-  // Pega a quantidade exata de dias do mês atual
   const qtdDiasNoMes = new Date(ano, mes + 1, 0).getDate();
   const dataFim = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(qtdDiasNoMes).padStart(2, '0')}`;
 
-  // Preenche os campos automaticamente
   document.getElementById('relDataInicio').value = dataInicio;
   document.getElementById('relDataFim').value = dataFim;
-  
   modalRelatorio.showModal();
 });
 document.getElementById('btnFecharRelatorio').addEventListener('click', () => modalRelatorio.close());
@@ -290,6 +308,7 @@ document.getElementById('btnSalvarCliente').addEventListener('click', () => {
       chrome.storage.local.set({clientes: listaClientes}, () => {
         document.getElementById('inputNomeCliente').value = ''; 
         renderizarListaClientesHist();
+        atualizarListasEdicao(); // Atualiza listas do modal de edição
       });
     } else alert('Cliente já cadastrado.');
   });
@@ -312,7 +331,10 @@ function renderizarListaClientesHist() {
         if(confirm(`Excluir "${nome}" da base de dados?`)) {
           chrome.storage.local.get({clientes: []}, (res) => {
             const novaLista = res.clientes.filter(c => c !== nome);
-            chrome.storage.local.set({clientes: novaLista}, renderizarListaClientesHist);
+            chrome.storage.local.set({clientes: novaLista}, () => {
+              renderizarListaClientesHist();
+              atualizarListasEdicao();
+            });
           });
         }
       });
@@ -349,6 +371,7 @@ document.getElementById('inputImportarClientesFile').addEventListener('change', 
           chrome.storage.local.set({ clientes: cliFinais }, () => {
             alert('Clientes importados com sucesso!');
             renderizarListaClientesHist();
+            atualizarListasEdicao();
             document.getElementById('inputImportarClientesFile').value = ''; 
           });
         });
@@ -382,6 +405,7 @@ document.getElementById('btnSalvarProj').addEventListener('click', () => {
       document.getElementById('inputCodigoProj').value = '';
       document.getElementById('inputDescProj').value = '';
       renderizarListaProjetosHist();
+      atualizarListasEdicao();
     });
   });
 });
@@ -403,7 +427,10 @@ function renderizarListaProjetosHist() {
         if(confirm(`Excluir o projeto "${proj.codigo}" da base de dados?`)) {
           chrome.storage.local.get({projetos: []}, (res) => {
             const novaLista = res.projetos.filter(p => p.codigo !== proj.codigo);
-            chrome.storage.local.set({projetos: novaLista}, renderizarListaProjetosHist);
+            chrome.storage.local.set({projetos: novaLista}, () => {
+              renderizarListaProjetosHist();
+              atualizarListasEdicao();
+            });
           });
         }
       });
@@ -443,6 +470,7 @@ document.getElementById('inputImportarProjetosFile').addEventListener('change', 
           chrome.storage.local.set({ projetos: Array.from(mapP.values()) }, () => {
             alert('Projetos importados com sucesso!');
             renderizarListaProjetosHist();
+            atualizarListasEdicao();
             document.getElementById('inputImportarProjetosFile').value = ''; 
           });
         });
@@ -491,7 +519,9 @@ document.getElementById('inputImportarFile').addEventListener('change', function
 
             chrome.storage.local.set({ tarefas: Array.from(mapT.values()), clientes: cliFinais, projetos: Array.from(mapP.values()) }, () => {
               alert('Dados completos importados com sucesso!');
-              carregarFiltroClientes(); carregarHistorico(); 
+              carregarFiltroClientes(); 
+              carregarHistorico(); 
+              atualizarListasEdicao();
               document.getElementById('inputImportarFile').value = ''; 
             });
           });
@@ -503,4 +533,8 @@ document.getElementById('inputImportarFile').addEventListener('change', function
 });
 
 // Inicialização
-document.addEventListener('DOMContentLoaded', () => { carregarFiltroClientes(); carregarHistorico(); });
+document.addEventListener('DOMContentLoaded', () => { 
+  carregarFiltroClientes(); 
+  carregarHistorico(); 
+  atualizarListasEdicao(); 
+});

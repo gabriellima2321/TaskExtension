@@ -186,8 +186,16 @@
       <div style="flex:1"><label>Entrada:</label> <input type="time" id="editHoraEntrada"></div>
       <div style="flex:1"><label>Saída:</label> <input type="time" id="editHoraSaida"></div>
     </div>
-    <label>Cliente:</label> <input type="text" id="editCliente">
-    <label>Código do Projeto:</label> <input type="text" id="editProjeto" placeholder="Ex: PRJ-01">
+    
+    <!-- Campos Transformados em Listas Suspensas -->
+    <label>Cliente:</label> 
+    <input type="text" id="editCliente" list="editListaClientes">
+    <datalist id="editListaClientes"></datalist>
+    
+    <label>Código do Projeto:</label> 
+    <input type="text" id="editProjeto" list="editListaProjetos" placeholder="Ex: PRJ-01">
+    <datalist id="editListaProjetos"></datalist>
+    
     <label>Descrição da Tarefa:</label> <textarea id="editDescricao"></textarea>
     <div class="btn-row">
       <button id="btnCancelarEdicao" class="btn-fechar">Cancelar</button>
@@ -220,7 +228,6 @@
     </div>
     <ul id="ulClientesGerenciar" class="lista-gerenciar"></ul>
     
-    <!-- Novo Rodapé com Exportar e Importar -->
     <div class="btn-row" style="justify-content: space-between;">
       <div style="display: flex; gap: 8px;">
         <button id="btnExportarClientes" class="btn-filtro btn-exportar" style="margin: 0; padding: 8px 12px;" title="Exportar Clientes">📤 Exportar</button>
@@ -241,7 +248,6 @@
     </div>
     <ul id="ulProjetosGerenciar" class="lista-gerenciar"></ul>
     
-    <!-- Novo Rodapé com Exportar e Importar -->
     <div class="btn-row" style="justify-content: space-between;">
       <div style="display: flex; gap: 8px;">
         <button id="btnExportarProjetos" class="btn-filtro btn-exportar" style="margin: 0; padding: 8px 12px;" title="Exportar Projetos">📤 Exportar</button>
