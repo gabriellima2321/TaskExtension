@@ -27,7 +27,6 @@
     .btn-limpar { background-color: #cbd5e1; color: #334155; }
     .btn-limpar:hover { background-color: #94a3b8; color: white; }
 
-    /* Estilos extras para Exportar e Importar nos Modais */
     .btn-exportar { background-color: #8b5cf6; color: white; }
     .btn-exportar:hover { background-color: #7c3aed; }
     .btn-importar { background-color: #f59e0b; color: white; }
@@ -111,6 +110,11 @@
     .btn-excluir-item { background: none; border: none; color: #ef476f; cursor: pointer; padding: 4px; box-shadow: none; width: auto; font-size: 12px; border-radius: 4px;}
     .btn-excluir-item:hover { color: white; background: #ef476f; transform: none; box-shadow: none; }
 
+    /* Bloco de Tipo de Relatório */
+    .checkbox-relatorio-row { display: flex; gap: 15px; margin: 5px 0 15px 0; background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1; flex-wrap: wrap; }
+    .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; margin: 0; }
+    .checkbox-label input { width: auto; margin: 0; cursor: pointer; }
+
     .linha-datas { display: flex; gap: 10px; margin-bottom: 15px; }
     .col-data { flex: 1; }
     .btn-gerar { background-color: var(--primary-color); color: white; width: 100%; padding: 10px; margin-bottom: 15px; font-size: 14px; }
@@ -187,7 +191,6 @@
       <div style="flex:1"><label>Saída:</label> <input type="time" id="editHoraSaida"></div>
     </div>
     
-    <!-- Campos Transformados em Listas Suspensas -->
     <label>Cliente:</label> 
     <input type="text" id="editCliente" list="editListaClientes">
     <datalist id="editListaClientes"></datalist>
@@ -203,16 +206,30 @@
     </div>
   </dialog>
 
-  <!-- Modal Relatório -->
+  <!-- Modal Relatório Dinâmico -->
   <dialog id="modalRelatorio">
-    <h3>Relatório por Cliente</h3>
+    <h3 id="tituloRelatorio">Relatório por Cliente</h3>
+    
+    <label>Agrupar resultado por:</label>
+    <div class="checkbox-relatorio-row">
+      <label class="checkbox-label">
+        <input type="checkbox" id="chkRelCliente" checked> Clientes
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="chkRelProjeto"> Projetos
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="chkRelExtras"> Horas Extras (Fora das 8:55-18:05)
+      </label>
+    </div>
+
     <div class="linha-datas">
       <div class="col-data"><label>Data Início:</label> <input type="date" id="relDataInicio"></div>
       <div class="col-data"><label>Data Fim:</label> <input type="date" id="relDataFim"></div>
     </div>
     <button id="btnGerarRelatorio" class="btn-gerar">Calcular Horas</button>
     <div id="resultadoRelatorio" class="resultado-box">
-      <div class="vazio" style="padding: 10px;">Selecione o período e clique em calcular.</div>
+      <div class="vazio" style="padding: 10px;">Clique em calcular para processar os dados do período.</div>
     </div>
     <div class="btn-row">
       <button id="btnFecharRelatorio" class="btn-fechar">Fechar</button>

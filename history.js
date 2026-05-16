@@ -35,7 +35,6 @@ function atualizarListasEdicao() {
     const dlClientes = document.getElementById('editListaClientes');
     const dlProjetos = document.getElementById('editListaProjetos');
     
-    // Atualiza opções de Clientes
     dlClientes.innerHTML = '';
     const clientesOrd = result.clientes.sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
     clientesOrd.forEach(c => {
@@ -44,9 +43,8 @@ function atualizarListasEdicao() {
       dlClientes.appendChild(opt);
     });
 
-    // Atualiza opções de Projetos
     dlProjetos.innerHTML = '';
-    const projetosOrd = result.projetos.sort((a, b) => a.codigo.localeCompare(b.codigo, 'pt-BR', { sensitivity: 'base' }));
+    const proyectosOrd = result.projetos.sort((a, b) => a.codigo.localeCompare(b.codigo, 'pt-BR', { sensitivity: 'base' }));
     projetosOrd.forEach(p => {
       const opt = document.createElement('option');
       opt.value = p.codigo;
@@ -84,9 +82,9 @@ document.getElementById('btnLimpar').addEventListener('click', () => { selectFil
 function setPeriodo(periodo) { periodoRapido = periodo; inputFiltroData.value = ''; atualizarBotoesVisuais(); carregarHistorico(); }
 function atualizarBotoesVisuais() {
   botoesFiltro.forEach(btn => btn.classList.remove('ativo'));
-  if (periodoRapido === 'today') document.getElementById('btnHoje').classList.add('ativo');
-  if (periodoRapido === 'month') document.getElementById('btnMes').classList.add('ativo');
-  if (periodoRapido === 'year') document.getElementById('btnAno').classList.add('ativo');
+  if (periodoRapido === 'today' && document.getElementById('btnHoje')) document.getElementById('btnHoje').classList.add('ativo');
+  if (periodoRapido === 'month' && document.getElementById('btnMes')) document.getElementById('btnMes').classList.add('ativo');
+  if (periodoRapido === 'year' && document.getElementById('btnAno')) document.getElementById('btnAno').classList.add('ativo');
 }
 
 // ---- RENDERIZAÇÃO DA TABELA HISTÓRICO ----
@@ -217,25 +215,66 @@ document.getElementById('btnSalvarEdicao').addEventListener('click', () => {
   });
 });
 
-// ---- MENU: APAGAR HISTÓRICO ----
+// ---- MENU: APAGAR HISTÓRICO COMPLETO ----
 document.getElementById('menuLimparHistorico').addEventListener('click', (e) => {
   e.preventDefault();
-  if(confirm('🚨 ATENÇÃO! Tem certeza que deseja APAGAR TODO o histórico de tarefas? Esta ação não pode ser desfeita.')) {
+  if(confirm('🚨 ATENÇÃO! Tem certeza que deseja APAGAR TODO o histórico de tarefas, clientes e projetos cadastrados? Esta ação não pode ser desfeita.')) {
     if(confirm('Tem certeza absoluta? Recomendamos exportar um backup (Exportar Histórico Completo) antes de continuar.')) {
-      chrome.storage.local.set({tarefas: []}, () => {
+      chrome.storage.local.set({tarefas: [], clientes: [], projetos: []}, () => {
         alert('Histórico de tarefas apagado com sucesso.');
         carregarFiltroClientes();
         carregarHistorico();
+        atualizarListasEdicao(); 
       });
     }
   }
 });
 
-// ---- MENU: RELATÓRIOS ----
+// ---- MENU: RELATÓRIOS DINÂMICOS ----
+const chkRelCliente = document.getElementById('chkRelCliente');
+const chkRelProjeto = document.getElementById('chkRelProjeto');
+const chkRelExtras = document.getElementById('chkRelExtras');
+const tituloRelatorio = document.getElementById('tituloRelatorio');
+
+chkRelCliente.addEventListener('change', () => {
+  if (chkRelCliente.checked) {
+    chkRelProjeto.checked = false;
+    chkRelExtras.checked = false;
+    tituloRelatorio.textContent = "Relatório por Cliente";
+  } else if (!chkRelProjeto.checked && !chkRelExtras.checked) {
+    chkRelCliente.checked = true;
+  }
+});
+
+chkRelProjeto.addEventListener('change', () => {
+  if (chkRelProjeto.checked) {
+    chkRelCliente.checked = false;
+    chkRelExtras.checked = false;
+    tituloRelatorio.textContent = "Relatório por Projeto";
+  } else if (!chkRelCliente.checked && !chkRelExtras.checked) {
+    chkRelProjeto.checked = true;
+  }
+});
+
+chkRelExtras.addEventListener('change', () => {
+  if (chkRelExtras.checked) {
+    chkRelCliente.checked = false;
+    chkRelProjeto.checked = false;
+    tituloRelatorio.textContent = "Relatório de Horas Extras";
+  } else if (!chkRelCliente.checked && !chkRelProjeto.checked) {
+    chkRelExtras.checked = true;
+  }
+});
+
 document.getElementById('menuRelatorio').addEventListener('click', (e) => {
   e.preventDefault();
   document.getElementById('resultadoRelatorio').innerHTML = '<div class="vazio" style="padding: 10px;">Clique em calcular para processar os dados do período.</div>';
   
+  chkRelCliente.checked = true;
+  chkRelProjeto.checked = false;
+  chkRelExtras.checked = false;
+  tituloRelatorio.textContent = "Relatório por Cliente";
+
   const hoje = new Date();
   const ano = hoje.getFullYear();
   const mes = hoje.getMonth(); 
@@ -249,13 +288,42 @@ document.getElementById('menuRelatorio').addEventListener('click', (e) => {
 });
 document.getElementById('btnFecharRelatorio').addEventListener('click', () => modalRelatorio.close());
 
-function calcularMinutos(entrada, saida) {
+function converterParaMinutos(horarioStr) {
+  if (!horarioStr) return 0;
+  const [h, m] = horarioStr.split(':').map(Number);
+  return (h * 60) + m;
+}
+
+function calcularMinutosTotais(entrada, saida) {
   if (!entrada || !saida) return 0;
-  const [h1, m1] = entrada.split(':').map(Number);
-  const [h2, m2] = saida.split(':').map(Number);
-  let diferenca = ((h2 * 60) + m2) - ((h1 * 60) + m1);
+  let diferenca = converterParaMinutos(saida) - converterParaMinutos(entrada);
   if (diferenca < 0) diferenca += 24 * 60; 
   return diferenca;
+}
+
+function calcularMinutosExtras(entradaStr, saidaStr) {
+  if (!entradaStr || !saidaStr) return 0;
+
+  const minEntrada = converterParaMinutos(entradaStr);
+  let minSaida = converterParaMinutos(saidaStr);
+  if (minSaida < minEntrada) minSaida += 24 * 60; 
+
+  const limiteManha = (8 * 60) + 55;  
+  const limiteTarde = (18 * 60) + 5;  
+
+  let minutosExtras = 0;
+
+  if (minEntrada < limiteManha) {
+    const fimEscopoManha = Math.min(minSaida, limiteManha);
+    minutosExtras += (fimEscopoManha - minEntrada);
+  }
+
+  if (minSaida > limiteTarde) {
+    const inicioEscopoTarde = Math.max(minEntrada, limiteTarde);
+    minutosExtras += (minSaida - inicioEscopoTarde);
+  }
+
+  return minutosExtras;
 }
 
 document.getElementById('btnGerarRelatorio').addEventListener('click', () => {
@@ -264,32 +332,101 @@ document.getElementById('btnGerarRelatorio').addEventListener('click', () => {
   const divResultado = document.getElementById('resultadoRelatorio');
   if (!dataInicio || !dataFim) return alert('Por favor, preencha a Data Início e a Data Fim.');
 
-  chrome.storage.local.get({tarefas: []}, (result) => {
-    const horasPorCliente = {};
+  const tipoRelatorio = chkRelProjeto.checked ? 'projeto' : (chkRelExtras.checked ? 'extras' : 'cliente');
+
+  chrome.storage.local.get({tarefas: [], projetos: []}, (result) => {
+    const horasAgrupadas = {};
+    let minutosExtrasSomadosDoPeriodo = 0; // Acumulador global para o sumário de extras
+
     result.tarefas.forEach(t => {
       if (t.data >= dataInicio && t.data <= dataFim) {
-        const nomeChave = t.cliente.trim().toUpperCase(); 
-        const nomeExibicao = t.cliente.trim();
-        const min = calcularMinutos(t.horaEntrada, t.horaSaida);
-        if (!horasPorCliente[nomeChave]) horasPorCliente[nomeChave] = { nome: nomeExibicao, totalMinutos: 0 };
-        horasPorCliente[nomeChave].totalMinutos += min;
+        let dadoChave = '';
+        let dadoExibicao = '';
+        let minutosCalculados = 0;
+
+        if (tipoRelatorio === 'extras') {
+          dadoChave = t.data;
+          dadoExibicao = t.data.split('-').reverse().join('/'); 
+          minutosCalculados = calcularMinutosExtras(t.horaEntrada, t.horaSaida);
+          minutosExtrasSomadosDoPeriodo += minutosCalculados; // Soma no acumulador global
+        } else if (tipoRelatorio === 'projeto') {
+          const codProj = (t.projetoCodigo || '').trim();
+          if (codProj === '') {
+            dadoChave = '_SEM_PROJETO_';
+            dadoExibicao = 'SEM PROJETO ATRIBUÍDO';
+          } else {
+            dadoChave = codProj;
+            let desc = (t.projetoDescription || t.projetoDescricao || '').trim();
+            if (desc === '') {
+              const cadastrado = result.projetos.find(p => p.codigo.toUpperCase() === codProj.toUpperCase());
+              if (cadastrado && cadastrado.descricao) desc = cadastrado.descricao.trim();
+            }
+            dadoExibicao = desc !== '' ? `${codProj} - ${desc}` : codProj;
+          }
+          minutosCalculados = calcularMinutosTotais(t.horaEntrada, t.horaSaida);
+        } else {
+          const nomeCli = (t.cliente || '').trim();
+          if (nomeCli === '') {
+            dadoChave = '_SEM_CLIENTE_';
+            dadoExibicao = 'SEM CLIENTE ATRIBUÍDO';
+          } else {
+            dadoChave = nomeCli;
+            dadoExibicao = nomeCli;
+          }
+          minutosCalculados = calcularMinutosTotais(t.horaEntrada, t.horaSaida);
+        }
+
+        const nomeChaveUpper = dadoChave.toUpperCase();
+
+        if (!horasAgrupadas[nomeChaveUpper]) {
+          horasAgrupadas[nomeChaveUpper] = { nome: dadoExibicao, totalMinutos: 0 };
+        }
+        horasAgrupadas[nomeChaveUpper].totalMinutos += minutosCalculados;
       }
     });
 
-    const clientes = Object.values(horasPorCliente).sort((a, b) => b.totalMinutos - a.totalMinutos);
-    if (clientes.length === 0) return divResultado.innerHTML = '<div class="vazio" style="padding: 10px;">Nenhuma tarefa encontrada neste período.</div>';
+    const itensOrdenados = Object.values(horasAgrupadas).sort((a, b) => {
+      if (tipoRelatorio === 'extras') {
+        const dataA = a.nome.split('/').reverse().join('-');
+        const dataB = b.nome.split('/').reverse().join('-');
+        return dataA.localeCompare(dataB);
+      }
+      return b.totalMinutos - a.totalMinutos;
+    });
+
+    if (itensOrdenados.length === 0) return divResultado.innerHTML = '<div class="vazio" style="padding: 10px;">Nenhum registro mapeado no período.</div>';
 
     let html = '';
-    clientes.forEach(c => {
-      const h = Math.floor(c.totalMinutos / 60);
-      const m = c.totalMinutos % 60;
-      html += `<div class="item-resultado"><span class="nome-cliente">${c.nome}</span><span class="tempo-cliente">${h}h ${m>0?m+'m':'00m'}</span></div>`;
+    let encontrouAlgumMinuto = false;
+
+    itensOrdenados.forEach(item => {
+      if (tipoRelatorio === 'extras' && item.totalMinutos === 0) return; 
+      encontrouAlgumMinuto = true;
+      const h = Math.floor(item.totalMinutos / 60);
+      const m = item.totalMinutos % 60;
+      html += `<div class="item-resultado"><span class="nome-cliente">${item.nome}</span><span class="tempo-cliente" style="${tipoRelatorio === 'extras' ? 'color: #ef476f;' : ''}">${h}h ${m>0?m+'m':'00m'}</span></div>`;
     });
-    divResultado.innerHTML = html;
+
+    // IMPLEMENTAÇÃO DO SUMÁRIO FINAL PARA HORAS EXTRAS
+    if (tipoRelatorio === 'extras' && encontrouAlgumMinuto) {
+      const hTotal = Math.floor(minutosExtrasSomadosDoPeriodo / 60);
+      const mTotal = minutosExtrasSomadosDoPeriodo % 60;
+      
+      // Linha de divisão visual e o bloco de sumário destacado
+      html += `
+        <div style="border-top: 2px solid #cbd5e1; margin-top: 12px; padding-top: 8px;"></div>
+        <div class="item-resultado" style="background: #fff0f3; padding: 8px; border-radius: 6px; font-weight: bold; border: 1px solid #fecdd3;">
+          <span class="nome-cliente" style="color: #b91c1c;">📊 TOTAL ACUMULADO:</span>
+          <span class="tempo-cliente" style="color: #e11d48; font-size: 15px;">${hTotal}h ${mTotal > 0 ? mTotal + 'm' : '00m'}</span>
+        </div>
+      `;
+    }
+
+    divResultado.innerHTML = encontrouAlgumMinuto ? html : '<div class="vazio" style="padding: 10px;">Nenhuma hora extra gerada neste período.</div>';
   });
 });
 
-// ---- MENU: GERENCIAR CLIENTES E EXPORTAR/IMPORTAR CLIENTES ----
+// ---- MENU: GERENCIAR CLIENTES ----
 document.getElementById('menuClientes').addEventListener('click', (e) => {
   e.preventDefault();
   document.getElementById('inputNomeCliente').value = '';
@@ -308,7 +445,7 @@ document.getElementById('btnSalvarCliente').addEventListener('click', () => {
       chrome.storage.local.set({clientes: listaClientes}, () => {
         document.getElementById('inputNomeCliente').value = ''; 
         renderizarListaClientesHist();
-        atualizarListasEdicao(); // Atualiza listas do modal de edição
+        atualizarListasEdicao();
       });
     } else alert('Cliente já cadastrado.');
   });
@@ -344,7 +481,6 @@ function renderizarListaClientesHist() {
   });
 }
 
-// Exportar e Importar APENAS Clientes
 document.getElementById('btnExportarClientes').addEventListener('click', () => {
   chrome.storage.local.get({clientes: []}, (result) => {
     const a = document.createElement('a');
@@ -364,7 +500,6 @@ document.getElementById('inputImportarClientesFile').addEventListener('change', 
     try {
       const dados = JSON.parse(evento.target.result);
       const novosClientes = Array.isArray(dados) ? dados : (dados.clientes || []);
-      
       if (novosClientes.length > 0) {
         chrome.storage.local.get({clientes: []}, (dAtuais) => {
           const cliFinais = [...new Set([...dAtuais.clientes, ...novosClientes])];
@@ -381,7 +516,7 @@ document.getElementById('inputImportarClientesFile').addEventListener('change', 
   reader.readAsText(file); 
 });
 
-// ---- MENU: GERENCIAR PROJETOS E EXPORTAR/IMPORTAR PROJETOS ----
+// ---- MENU: GERENCIAR PROJETOS ----
 document.getElementById('menuProjetos').addEventListener('click', (e) => {
   e.preventDefault();
   document.getElementById('inputCodigoProj').value = '';
@@ -440,7 +575,6 @@ function renderizarListaProjetosHist() {
   });
 }
 
-// Exportar e Importar APENAS Projetos
 document.getElementById('btnExportarProjetos').addEventListener('click', () => {
   chrome.storage.local.get({projetos: []}, (result) => {
     const a = document.createElement('a');
@@ -460,13 +594,11 @@ document.getElementById('inputImportarProjetosFile').addEventListener('change', 
     try {
       const dados = JSON.parse(evento.target.result);
       const novosProjetos = Array.isArray(dados) ? dados : (dados.projetos || []);
-      
       if (novosProjetos.length > 0) {
         chrome.storage.local.get({projetos: []}, (dAtuais) => {
           const mapP = new Map();
           dAtuais.projetos.forEach(p => mapP.set(p.codigo, p));
           novosProjetos.forEach(p => { if (p.codigo) mapP.set(p.codigo, p); });
-          
           chrome.storage.local.set({ projetos: Array.from(mapP.values()) }, () => {
             alert('Projetos importados com sucesso!');
             renderizarListaProjetosHist();
@@ -480,7 +612,7 @@ document.getElementById('inputImportarProjetosFile').addEventListener('change', 
   reader.readAsText(file); 
 });
 
-// ---- IMPORTAR / EXPORTAR HISTÓRICO COMPLETO (MENU) ----
+// ---- IMPORTAR / EXPORTAR HISTÓRICO COMPLETO ----
 document.getElementById('menuExportar').addEventListener('click', (e) => {
   e.preventDefault();
   chrome.storage.local.get(null, (result) => {
