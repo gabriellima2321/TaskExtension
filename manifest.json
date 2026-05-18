@@ -5,12 +5,12 @@
   "description": "Registra horários de entrada, saída, clientes e tarefas.",
   "permissions": ["storage"],
   "icons": {
-    "16": "working-time.png",
-    "48": "working-time.png",
-    "128": "working-time.png"
+    "16": "./icons/working-time.png",
+    "48": "./icons/working-time.png",
+    "128": "./icons/working-time.png"
   },
   "action": {
     "default_popup": "popup.html",
-    "default_icon": "working-time.png"
+    "default_icon": "./icons/working-time.png"
   }
 }
