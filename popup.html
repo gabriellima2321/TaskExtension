@@ -3,138 +3,81 @@
 <head>
   <meta charset="UTF-8">
   <title>Registrar Tarefa</title>
-  <style>
-    :root {
-      --primary-color: #4e54c8;
-      --secondary-color: #8f94fb;
-      --btn-save: #06d6a0;
-      --btn-save-hover: #05b083;
-      --btn-history: #2196F3;
-      --btn-history-hover: #1976D2;
-      --text-color: #444;
-    }
-
-    body { width: 320px; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; margin: 0; box-sizing: border-box; color: var(--text-color); }
-    h3 { margin-top: 0; margin-bottom: 18px; color: var(--primary-color); text-align: center; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
-    .form-group { margin-bottom: 12px; }
-    label { display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 4px; }
-
-    input, textarea, select { width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; font-size: 13px; transition: border-color 0.3s, box-shadow 0.3s; background-color: #fff; }
-    input:focus, textarea:focus, select:focus { border-color: var(--primary-color); box-shadow: 0 0 6px rgba(78, 84, 200, 0.15); outline: none; }
-    textarea { resize: vertical; min-height: 100px; }
-
-    .row-horas { display: flex; gap: 10px; margin-bottom: 12px; }
-    .col-hora { flex: 1; }
-
-    .row-input-dots { display: flex; gap: 8px; align-items: stretch; }
-    .btn-dots { background-color: #e2e8f0; color: #475569; border: none; border-radius: 6px; width: 32px; padding: 0; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; }
-    .btn-dots:hover { background-color: #cbd5e1; color: var(--primary-color); }
-
-    button { width: 100%; padding: 11px; cursor: pointer; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; transition: all 0.25s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.06); }
-    .btn-salvar { background-color: var(--btn-save); color: white; margin-top: 8px; }
-    .btn-salvar:hover { background-color: var(--btn-save-hover); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(6, 214, 160, 0.25); }
-    .btn-historico { background-color: var(--btn-history); color: white; margin-top: 10px; }
-    .btn-historico:hover { background-color: var(--btn-history-hover); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(33, 150, 243, 0.25); }
-
-    #mensagemSucesso { display: none; background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724; padding: 10px; margin-top: 15px; border-radius: 6px; text-align: center; font-weight: 600; font-size: 13px; border: 1px solid #b1dfbb; box-shadow: 0 4px 6px rgba(0,0,0,0.03); animation: abrirSuave 0.3s ease; }
-    @keyframes abrirSuave { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* Estilos dos Modais (Clientes e Projetos) */
-    dialog { padding: 20px; border: none; border-radius: 8px; width: 280px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-    dialog::backdrop { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(2px); }
-    dialog h3 { font-size: 15px; margin-bottom: 15px; border-bottom: none; }
-    
-    .add-row { display: flex; gap: 8px; margin-bottom: 15px; align-items: stretch; flex-wrap: wrap;}
-    .add-row input { flex: 1; margin: 0; min-width: 100%;}
-    .add-row button { width: 100%; margin: 0; font-size: 13px; padding: 8px;}
-
-    .lista-gerenciar { list-style: none; padding: 0; margin: 0; max-height: 150px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; background: #fff;}
-    .lista-gerenciar li { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid #eee; font-size: 13px; color: #555;}
-    .lista-gerenciar li:last-child { border-bottom: none; }
-    
-    .btn-excluir-item { background: none; border: none; color: #ef476f; cursor: pointer; padding: 4px; box-shadow: none; width: auto; font-size: 12px; border-radius: 4px;}
-    .btn-excluir-item:hover { color: white; background: #ef476f; transform: none; box-shadow: none; }
-
-    dialog .btn-row { display: flex; margin-top: 15px; justify-content: flex-end;}
-    .btn-fechar { background-color: #95a5a6; color: white; width: auto; padding: 8px 16px;}
-    .btn-fechar:hover { background-color: #7f8c8d; transform: translateY(-2px);}
-  </style>
+  <!-- CHAMADA DO CSS EXTERNO -->
+  <link rel="stylesheet" href="./static/popup.css">
 </head>
 <body>
-  <h3>Registrar Tarefa</h3>
-  
+
+  <h3>Apontamento de Horas</h3>
+
   <div class="form-group">
-    <label>Data:</label> 
+    <label>Data:</label>
     <input type="date" id="data">
   </div>
-  
-  <div class="row-horas">
-    <div class="col-hora">
-      <label>Hora Entrada:</label> 
+
+  <div class="row">
+    <div class="form-group flex-1">
+      <label>Entrada:</label>
       <input type="time" id="horaEntrada">
     </div>
-    <div class="col-hora">
-      <label>Hora Saída:</label> 
+    <div class="form-group flex-1">
+      <label>Saída:</label>
       <input type="time" id="horaSaida">
     </div>
   </div>
-  
+
   <div class="form-group">
-    <label>Cliente:</label> 
-    <div class="row-input-dots">
+    <label>Cliente:</label>
+    <div style="display: flex; gap: 5px;">
       <input type="text" id="cliente" list="listaClientes" placeholder="Selecione ou digite...">
       <datalist id="listaClientes"></datalist>
-      <button id="btnGerenciarClientes" class="btn-dots" title="Gerenciar clientes">⋮</button>
+      <button id="btnGerenciarClientes" class="btn-icon" title="Gerenciar Clientes">👥</button>
     </div>
   </div>
 
-  <!-- NOVO CAMPO: PROJETO -->
   <div class="form-group">
-    <label>Código do Projeto:</label> 
-    <div class="row-input-dots">
-      <input type="text" id="projeto" list="listaProjetos" placeholder="Código (Ex: PRJ-01)">
+    <label>Código do Projeto:</label>
+    <div style="display: flex; gap: 5px;">
+      <input type="text" id="projeto" list="listaProjetos" placeholder="Ex: PRJ-01 (Opcional)">
       <datalist id="listaProjetos"></datalist>
-      <button id="btnGerenciarProjetos" class="btn-dots" title="Gerenciar projetos">⋮</button>
+      <button id="btnGerenciarProjetos" class="btn-icon" title="Gerenciar Projetos">📁</button>
     </div>
   </div>
-  
+
   <div class="form-group">
-    <label>Descrição da Tarefa:</label> 
-    <textarea id="descricao" placeholder="O que foi desenvolvido?"></textarea>
+    <label>Descrição da Tarefa:</label>
+    <textarea id="descricao" placeholder="O que você desenvolveu?..."></textarea>
   </div>
 
-  <button id="btnSalvar" class="btn-salvar">Salvar Tarefa</button>
-  <button id="btnHistorico" class="btn-historico">Abrir Histórico</button>
+  <div class="btn-block">
+    <button id="btnHistorico" class="btn-secondary">Histórico</button>
+    <button id="btnSalvar" class="btn-primary">Salvar Registro</button>
+  </div>
 
-  <div id="mensagemSucesso">Tarefa salva com sucesso!</div>
+  <div id="mensagemSucesso">✓ Tarefa registrada com sucesso!</div>
 
-  <!-- Modal Clientes -->
+  <!-- Modal Gerenciar Clientes -->
   <dialog id="modalGerenciar">
-    <h3>Gerenciar Clientes</h3>
-    <div class="add-row" style="flex-wrap: nowrap;">
-      <input type="text" id="inputNomeCliente" placeholder="Adicionar novo..." style="min-width: auto;">
-      <button id="btnSalvarCliente" class="btn-salvar" style="width: auto;">Salvar</button>
+    <label>Cadastrar Cliente:</label>
+    <div style="display: flex; gap: 5px; margin-bottom: 8px;">
+      <input type="text" id="inputNomeCliente" placeholder="Nome do cliente...">
+      <button id="btnSalvarCliente" class="btn-primary" style="padding:4px 10px;">+</button>
     </div>
     <ul id="ulClientesGerenciar" class="lista-gerenciar"></ul>
-    <div class="btn-row">
-      <button id="btnFecharGerenciar" class="btn-fechar">Fechar</button>
-    </div>
+    <button id="btnFecharGerenciar" class="btn-secondary" style="width:100%; margin-top:10px;">Fechar</button>
   </dialog>
 
-  <!-- NOVO MODAL: PROJETOS -->
+  <!-- Modal Gerenciar Projetos -->
   <dialog id="modalProjetos">
-    <h3>Gerenciar Projetos</h3>
-    <div class="add-row">
-      <input type="text" id="inputCodigoProj" placeholder="Código (Ex: PRJ-01)">
-      <input type="text" id="inputDescProj" placeholder="Descrição do Projeto">
-      <button id="btnSalvarProj" class="btn-salvar">Salvar Projeto</button>
-    </div>
+    <label>Código:</label>
+    <input type="text" id="inputCodigoProj" placeholder="Ex: PRJ-01" style="margin-bottom:5px;">
+    <label>Descrição:</label>
+    <input type="text" id="inputDescProj" placeholder="Ex: App Android" style="margin-bottom:8px;">
+    <button id="btnSalvarProj" class="btn-primary" style="width:100%; margin-bottom:5px;">Salvar Projeto</button>
     <ul id="ulProjetosGerenciar" class="lista-gerenciar"></ul>
-    <div class="btn-row">
-      <button id="btnFecharProjetos" class="btn-fechar">Fechar</button>
-    </div>
+    <button id="btnFecharProjetos" class="btn-secondary" style="width:100%; margin-top:5px;">Fechar</button>
   </dialog>
 
-  <script src="popup.js"></script>
+  <script src="./static/popup.js"></script>
 </body>
 </html>
