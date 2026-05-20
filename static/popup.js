@@ -1,12 +1,58 @@
+document.addEventListener('DOMContentLoaded', () => {
+  carregarClientes();
+  carregarProjetos();
+  inicializarDataEHoras();
+});
+
+// ---- FUNÇÕES DE PREENCHIMENTO AUTOMÁTICO (NOVO) ----
+function preencherHoraAtual(inputId) {
+  const agora = new Date();
+  const horas = String(agora.getHours()).padStart(2, '0');
+  const minutos = String(agora.getMinutes()).padStart(2, '0');
+  document.getElementById(inputId).value = `${horas}:${minutos}`;
+}
+
+document.getElementById('btnAgoraEntrada').addEventListener('click', () => preencherHoraAtual('horaEntrada'));
+document.getElementById('btnAgoraSaida').addEventListener('click', () => preencherHoraAtual('horaSaida'));
+
+// Auto-preenchimento ao digitar 'DAILY'
+document.getElementById('cliente').addEventListener('input', (e) => {
+  const texto = e.target.value.trim().toUpperCase();
+  if (texto === 'DAILY') {
+    document.getElementById('descricao').value = 'Reunião diária com a equipa de desenvolvimento.';
+  }
+});
+
+// Inicialização da Data e Hora do histórico
+function inicializarDataEHoras() {
+  const dataHoje = new Date().toISOString().split('T')[0];
+  document.getElementById('data').value = dataHoje;
+
+  chrome.storage.local.get({tarefas: []}, (result) => {
+    const tarefas = result.tarefas;
+    if (tarefas && tarefas.length > 0) {
+      const ultimaTarefa = tarefas[tarefas.length - 1];
+      document.getElementById('data').value = ultimaTarefa.data;
+      if (ultimaTarefa.horaSaida) {
+        document.getElementById('horaEntrada').value = ultimaTarefa.horaSaida;
+        let [h, m] = ultimaTarefa.horaSaida.split(':').map(Number);
+        h += 1;
+        if (h > 23) h = 23;
+        document.getElementById('horaSaida').value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      }
+    } else {
+      preencherHoraAtual('horaEntrada');
+    }
+  });
+}
+
 // ---- FUNÇÕES DE CLIENTES ----
 function carregarClientes(clienteSelecionado = '') {
   chrome.storage.local.get({clientes: []}, (result) => {
     const datalist = document.getElementById('listaClientes');
     datalist.innerHTML = '';
     
-    // Ordenação alfabética ignorando maiúsculas e acentos
     const clientesOrdenados = result.clientes.sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
-    
     clientesOrdenados.forEach(nome => {
       const option = document.createElement('option');
       option.value = nome;
@@ -22,9 +68,8 @@ function renderizarListaGerenciar() {
     ul.innerHTML = '';
     
     const clientesOrdenados = result.clientes.sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
-    
     if(clientesOrdenados.length === 0) {
-       ul.innerHTML = '<li style="color:#aaa; justify-content:center; font-style: italic;">Nenhum cliente</li>';
+       ul.innerHTML = '<li style="color:#aaa; justify-content:center; font-style: italic;">Nenhum cliente salvo</li>';
        return;
     }
     clientesOrdenados.forEach(nome => {
@@ -34,13 +79,11 @@ function renderizarListaGerenciar() {
       btnExcluir.textContent = '✖';
       btnExcluir.className = 'btn-excluir-item';
       btnExcluir.addEventListener('click', () => {
-        if(confirm(`Excluir "${nome}"?`)) {
-          chrome.storage.local.get({clientes: []}, (res) => {
-            const novaLista = res.clientes.filter(c => c !== nome);
-            chrome.storage.local.set({clientes: novaLista}, () => {
-              renderizarListaGerenciar();
-              carregarClientes();
-            });
+        if(confirm(`Excluir o cliente "${nome}"?`)) {
+          const novaLista = result.clientes.filter(c => c !== nome);
+          chrome.storage.local.set({clientes: novaLista}, () => {
+            renderizarListaGerenciar();
+            carregarClientes();
           });
         }
       });
@@ -50,46 +93,56 @@ function renderizarListaGerenciar() {
   });
 }
 
-function salvarClienteNoBanco(nome, callback) {
+const modalGerenciar = document.getElementById('modalGerenciar');
+document.getElementById('btnGerenciarClientes').addEventListener('click', () => {
+  renderizarListaGerenciar();
+  modalGerenciar.showModal();
+});
+document.getElementById('btnFecharGerenciar').addEventListener('click', () => modalGerenciar.close());
+
+document.getElementById('btnSalvarCliente').addEventListener('click', () => {
+  const nomeNovo = document.getElementById('inputNomeCliente').value.trim();
+  if (!nomeNovo) return;
   chrome.storage.local.get({clientes: []}, (result) => {
     let listaClientes = result.clientes;
-    if (!listaClientes.includes(nome)) {
-      listaClientes.push(nome);
-      chrome.storage.local.set({clientes: listaClientes}, callback);
+    if (!listaClientes.includes(nomeNovo)) {
+      listaClientes.push(nomeNovo);
+      chrome.storage.local.set({clientes: listaClientes}, () => {
+        document.getElementById('inputNomeCliente').value = '';
+        renderizarListaGerenciar();
+        carregarClientes();
+      });
     } else {
-      if (callback) callback(); 
+      alert('Cliente já cadastrado.');
     }
   });
-}
+});
 
 // ---- FUNÇÕES DE PROJETOS ----
-function carregarProjetos(codigoSelecionado = '') {
+function carregarProjetos(projetoSelecionado = '') {
   chrome.storage.local.get({projetos: []}, (result) => {
     const datalist = document.getElementById('listaProjetos');
     datalist.innerHTML = '';
     
     const projetosOrdenados = result.projetos.sort((a, b) => a.codigo.localeCompare(b.codigo, 'pt-BR', { sensitivity: 'base' }));
-    
     projetosOrdenados.forEach(proj => {
       const option = document.createElement('option');
       option.value = proj.codigo;
       option.textContent = proj.descricao;
       datalist.appendChild(option);
     });
-
-    if (codigoSelecionado) document.getElementById('projeto').value = codigoSelecionado;
+    if (projetoSelecionado) document.getElementById('projeto').value = projetoSelecionado;
   });
 }
 
-function renderizarListaProjetos() {
+function renderizarListaProjetosGerenciar() {
   chrome.storage.local.get({projetos: []}, (result) => {
     const ul = document.getElementById('ulProjetosGerenciar');
     ul.innerHTML = '';
     
     const projetosOrdenados = result.projetos.sort((a, b) => a.codigo.localeCompare(b.codigo, 'pt-BR', { sensitivity: 'base' }));
-    
     if(projetosOrdenados.length === 0) {
-       ul.innerHTML = '<li style="color:#aaa; justify-content:center; font-style: italic;">Nenhum projeto</li>';
+       ul.innerHTML = '<li style="color:#aaa; justify-content:center; font-style: italic;">Nenhum projeto salvo</li>';
        return;
     }
     projetosOrdenados.forEach(proj => {
@@ -100,12 +153,10 @@ function renderizarListaProjetos() {
       btnExcluir.className = 'btn-excluir-item';
       btnExcluir.addEventListener('click', () => {
         if(confirm(`Excluir o projeto "${proj.codigo}"?`)) {
-          chrome.storage.local.get({projetos: []}, (res) => {
-            const novaLista = res.projetos.filter(p => p.codigo !== proj.codigo);
-            chrome.storage.local.set({projetos: novaLista}, () => {
-              renderizarListaProjetos();
-              carregarProjetos();
-            });
+          const novaLista = result.projetos.filter(p => p.codigo !== proj.codigo);
+          chrome.storage.local.set({projetos: novaLista}, () => {
+            renderizarListaProjetosGerenciar();
+            carregarProjetos();
           });
         }
       });
@@ -115,103 +166,17 @@ function renderizarListaProjetos() {
   });
 }
 
-// ---- INICIALIZAÇÃO E EVENTOS ----
-document.addEventListener('DOMContentLoaded', () => {
-  carregarClientes();
-  carregarProjetos();
-
-  // Puxa as tarefas do banco para pegar as últimas informações preenchidas
-  chrome.storage.local.get({tarefas: []}, (result) => {
-    const tarefas = result.tarefas;
-
-    if (tarefas.length > 0) {
-      // Ordena de forma cronológica para pegar sempre a última data e hora registrada
-      const tarefasOrdenadas = [...tarefas].sort((a, b) => {
-        if (a.data !== b.data) return a.data.localeCompare(b.data);
-        return (a.horaSaida || '').localeCompare(b.horaSaida || '');
-      });
-      
-      const ultimaTarefa = tarefasOrdenadas[tarefasOrdenadas.length - 1];
-      
-      if (ultimaTarefa.data && ultimaTarefa.horaSaida) {
-        document.getElementById('data').value = ultimaTarefa.data;
-        document.getElementById('horaEntrada').value = ultimaTarefa.horaSaida; // Entrada vira a última saída
-        
-        // Calcula a nova saída (+1 hora limitando a 23:59)
-        let [h, m] = ultimaTarefa.horaSaida.split(':').map(Number);
-        h += 1;
-        if (h >= 24) { h = 23; m = 59; }
-        document.getElementById('horaSaida').value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-        
-        return; // Retorna para não executar o código abaixo
-      }
-    }
-
-    // FALLBACK: Se o histórico estiver vazio, usa a data/hora do momento (Tempo Real)
-    const agora = new Date();
-    const ano = agora.getFullYear();
-    const mes = String(agora.getMonth() + 1).padStart(2, '0');
-    const dia = String(agora.getDate()).padStart(2, '0');
-    document.getElementById('data').value = `${ano}-${mes}-${dia}`;
-
-    const horaEntrada = String(agora.getHours()).padStart(2, '0');
-    const minEntrada = String(agora.getMinutes()).padStart(2, '0');
-    document.getElementById('horaEntrada').value = `${horaEntrada}:${minEntrada}`;
-
-    const dataSaida = new Date(agora.getTime() + 60 * 60 * 1000);
-    let horaSaidaStr, minSaidaStr;
-    if (dataSaida.getDate() !== agora.getDate() || dataSaida.getHours() < agora.getHours()) {
-      horaSaidaStr = "23"; minSaidaStr = "59";
-    } else {
-      horaSaidaStr = String(dataSaida.getHours()).padStart(2, '0');
-      minSaidaStr = String(dataSaida.getMinutes()).padStart(2, '0');
-    }
-    document.getElementById('horaSaida').value = `${horaSaidaStr}:${minSaidaStr}`;
-  });
-});
-
-// ---- AUTOPREENCHIMENTO: DAILY ----
-document.getElementById('cliente').addEventListener('input', function(e) {
-  const nomeCliente = e.target.value.trim().toUpperCase();
-  const campoDescricao = document.getElementById('descricao');
-  
-  // Se o usuário digitar "Daily" ou "DAILY", preenche a descrição automaticamente
-  if (nomeCliente === 'DAILY') {
-    campoDescricao.value = 'Reunião com o time de projeto e desenvolvimento';
-  }
-});
-
-// Eventos Modal Cliente
-const modalGerenciar = document.getElementById('modalGerenciar');
-document.getElementById('btnGerenciarClientes').addEventListener('click', () => {
-  document.getElementById('inputNomeCliente').value = '';
-  renderizarListaGerenciar();
-  modalGerenciar.showModal();
-});
-document.getElementById('btnFecharGerenciar').addEventListener('click', () => modalGerenciar.close());
-document.getElementById('btnSalvarCliente').addEventListener('click', () => {
-  const nomeNovo = document.getElementById('inputNomeCliente').value.trim();
-  if (!nomeNovo) return alert("Digite o nome do cliente.");
-  salvarClienteNoBanco(nomeNovo, () => {
-    document.getElementById('inputNomeCliente').value = ''; 
-    renderizarListaGerenciar(); carregarClientes();
-  });
-});
-
-// Eventos Modal Projeto
 const modalProjetos = document.getElementById('modalProjetos');
 document.getElementById('btnGerenciarProjetos').addEventListener('click', () => {
-  document.getElementById('inputCodigoProj').value = '';
-  document.getElementById('inputDescProj').value = '';
-  renderizarListaProjetos();
+  renderizarListaProjetosGerenciar();
   modalProjetos.showModal();
 });
 document.getElementById('btnFecharProjetos').addEventListener('click', () => modalProjetos.close());
+
 document.getElementById('btnSalvarProj').addEventListener('click', () => {
   const cod = document.getElementById('inputCodigoProj').value.trim();
   const desc = document.getElementById('inputDescProj').value.trim();
-  if (!cod) return alert("Digite o código do projeto.");
-
+  if (!cod) return;
   chrome.storage.local.get({projetos: []}, (result) => {
     let listaProjetos = result.projetos;
     const index = listaProjetos.findIndex(p => p.codigo === cod);
@@ -223,32 +188,30 @@ document.getElementById('btnSalvarProj').addEventListener('click', () => {
     chrome.storage.local.set({projetos: listaProjetos}, () => {
       document.getElementById('inputCodigoProj').value = '';
       document.getElementById('inputDescProj').value = '';
-      renderizarListaProjetos();
-      carregarProjetos(cod);
+      renderizarListaProjetosGerenciar();
+      carregarProjetos();
     });
   });
 });
 
-// Salvar Tarefa Principal
-document.getElementById('btnHistorico').addEventListener('click', () => chrome.tabs.create({ url: 'history.html' }));
+// ---- SALVAR E HISTÓRICO ----
+document.getElementById('btnHistorico').addEventListener('click', () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL("history.html") });
+});
 
 document.getElementById('btnSalvar').addEventListener('click', () => {
-  const clienteDigitado = document.getElementById('cliente').value.trim();
-  const projetoCodigo = document.getElementById('projeto').value.trim();
-
-  if (!document.getElementById('data').value || !clienteDigitado) {
-    return alert("Por favor, preencha a Data e o Cliente.");
-  }
-
-  chrome.storage.local.get({clientes: [], projetos: [], tarefas: []}, (result) => {
-    
+  chrome.storage.local.get({tarefas: [], clientes: [], projetos: []}, (result) => {
+    const clienteDigitado = document.getElementById('cliente').value.trim();
     let listaClientes = result.clientes;
-    if (!listaClientes.includes(clienteDigitado)) listaClientes.push(clienteDigitado);
+    if (clienteDigitado && !listaClientes.includes(clienteDigitado)) {
+      listaClientes.push(clienteDigitado);
+    }
 
+    const projetoCodigo = document.getElementById('projeto').value.trim();
     let projetoDescricao = '';
-    if (projetoCodigo) {
-      const projEncontrado = result.projetos.find(p => p.codigo === projetoCodigo);
-      if (projEncontrado) projetoDescricao = projEncontrado.descricao;
+    const projEncontrado = result.projetos.find(p => p.codigo === projetoCodigo);
+    if (projEncontrado) {
+      projetoDescricao = projEncontrado.descricao;
     }
 
     const tarefa = {
@@ -266,22 +229,21 @@ document.getElementById('btnSalvar').addEventListener('click', () => {
     listaTarefas.push(tarefa);
 
     chrome.storage.local.set({clientes: listaClientes, tarefas: listaTarefas}, () => {
-      // Exibe sucesso
+      // Exibe animação de sucesso (usando CSS Animation)
       const msgSucesso = document.getElementById('mensagemSucesso');
       msgSucesso.style.display = 'block';
-      setTimeout(() => msgSucesso.style.display = 'none', 3000);
+      msgSucesso.style.animation = 'slideDownFading 3s ease forwards';
+      setTimeout(() => { msgSucesso.style.display = 'none'; msgSucesso.style.animation = ''; }, 3000);
 
-      // Limpa os campos de texto descritivos
       document.getElementById('cliente').value = ''; 
       document.getElementById('projeto').value = ''; 
       document.getElementById('descricao').value = '';
       carregarClientes(); 
       
-      // AUTO-AVANÇO: Atualiza a Entrada para a Saída que acabou de ser salva
       document.getElementById('horaEntrada').value = tarefa.horaSaida;
       let [h, m] = tarefa.horaSaida.split(':').map(Number);
       h += 1;
-      if (h >= 24) { h = 23; m = 59; } // Trava limite em 23:59
+      if (h > 23) h = 23;
       document.getElementById('horaSaida').value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     });
   });
