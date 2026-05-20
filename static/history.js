@@ -153,9 +153,14 @@ function carregarHistorico() {
       return;
     }
 
-    tarefas.forEach(tarefa => {
+    tarefas.forEach((tarefa, index) => {
       const dataFormatada = tarefa.data.split('-').reverse().join('/');
       const tr = document.createElement('tr');
+      
+      // ANIMAÇÃO CASCATA: Cria um atraso escalonado controlado por JavaScript
+      const delayAnima = Math.min(index * 0.025, 0.6);
+      tr.style.animationDelay = `${delayAnima}s`;
+
       tr.innerHTML = `
         <td><strong>${dataFormatada}</strong></td>
         <td>${tarefa.horaEntrada || '-'}</td>
@@ -510,7 +515,7 @@ document.getElementById('btnExportarClientes').addEventListener('click', () => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify({clientes: result.clientes}, null, 2)], { type: 'application/json' }));
     const hoje = new Date();
-    a.download = `clientes_${String(hoje.getDate()).padStart(2,'0')}-${String(hoje.getMonth()+1).padStart(2,'0')}-${hoje.getFullYear()}.json`;
+    a.download = `clientes_${String(revertDate(hoje.getDate())).padStart(2,'0')}-${String(hoje.getMonth()+1).padStart(2,'0')}-${hoje.getFullYear()}.json`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
   });
 });
