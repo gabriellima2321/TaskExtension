@@ -14,171 +14,130 @@
   --input-bg: #ffffff;
 }
 
-/* Animação de entrada do Popup */
 @keyframes popIn {
   0% { opacity: 0; transform: translateY(-10px) scale(0.98); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-body {
-  width: 380px;
-  margin: 0;
-  padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: var(--container-bg);
-  color: var(--text-color);
-  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; /* Efeito elástico */
-}
-
-h3 {
-  color: var(--google-blue);
-  margin-top: 0;
-  margin-bottom: 20px;
-  text-align: center;
-  font-size: 18px;
-  letter-spacing: 0.5px;
-  border-bottom: 2px solid #e8f0fe;
-  padding-bottom: 10px;
-}
-
-.form-group { margin-bottom: 12px; }
-
-label {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  color: #5f6368;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-input, textarea, select {
-  width: 100%;
-  padding: 10px;
-  box-sizing: border-box;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 14px;
-  background: var(--input-bg);
-  transition: all 0.3s ease;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
-}
-
-input:focus, textarea:focus {
-  border-color: var(--google-blue);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
-}
-
-textarea {
-  resize: vertical;
-  min-height: 60px;
-}
-
-.row { display: flex; gap: 12px; }
-.flex-1 { flex: 1; }
-
-/* Nova funcionalidade: Input com Botão Integrado */
-.input-with-btn {
-  display: flex;
-  gap: 5px;
-  align-items: center;
-}
-.btn-agora {
-  background: #e8f0fe;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  padding: 8px;
-  font-size: 14px;
-  transition: all 0.2s;
-  color: var(--google-blue);
-}
-.btn-agora:hover {
-  background: #d2e3fc;
-  transform: scale(1.1);
-}
-
-/* --- BOTÕES PRINCIPAIS --- */
-.btn-block {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-button {
-  cursor: pointer;
-  padding: 10px 14px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 13px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-button:active { transform: scale(0.95); }
-
-/* Botão Salvar (Verde Vivo) */
-.btn-primary {
-  background: var(--google-green);
-  color: white;
-  flex: 2;
-  box-shadow: 0 4px 6px rgba(52, 168, 83, 0.2);
-}
-.btn-primary:hover {
-  background: var(--google-green-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(52, 168, 83, 0.3);
-}
-
-/* Botão Histórico (Cinza Elegante) */
-.btn-secondary {
-  background: #e8eaed;
-  color: #3c4043;
-  flex: 1;
-}
-.btn-secondary:hover {
-  background: #dadce0;
-  color: #202124;
-  transform: translateY(-2px);
-}
-
-/* Botão de Adicionar Menor */
-.btn-primary-small {
-  background: var(--google-blue);
-  color: white;
-  padding: 8px 16px;
-}
-.btn-primary-small:hover {
-  background: var(--google-blue-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(26, 115, 232, 0.3);
-}
-
-/* Botões de Ícones Coloridos */
-.btn-icon {
-  padding: 10px;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-.btn-icon-blue { background: var(--google-blue); }
-.btn-icon-blue:hover { background: var(--google-blue-hover); transform: rotate(10deg) scale(1.05); }
-
-.btn-icon-orange { background: var(--google-yellow); color: #000; }
-.btn-icon-orange:hover { filter: brightness(0.9); transform: rotate(-10deg) scale(1.05); }
-
-/* --- MENSAGEM SUCESSO ANIMADA --- */
 @keyframes slideDownFading {
   0% { opacity: 0; transform: translateY(-20px); }
   10% { opacity: 1; transform: translateY(0); }
   90% { opacity: 1; transform: translateY(0); }
   100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* ======== ADAPTAÇÕES PARA SIDE PANEL ======== */
+body {
+  /* Removemos o width: 380px fixo */
+  width: 100%;
+  min-height: 100vh; /* Ocupa a altura toda do painel */
+  margin: 0;
+  padding: 20px;
+  box-sizing: border-box; /* Garante que o padding não crie barras de rolagem */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--container-bg);
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column; /* Prepara o body para empurrar os botões para baixo */
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+h3 {
+  margin-top: 0;
+  color: var(--google-blue);
+  font-size: 18px;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+/* Formulários Flexíveis */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #5f6368;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--input-bg);
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s;
+}
+
+input:focus, textarea:focus {
+  border-color: var(--google-blue);
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Linha com inputs lado a lado (Entrada e Saída) */
+.row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap; /* Se o painel for encolhido demais, eles ficam um embaixo do outro */
+}
+
+.flex-1 {
+  flex: 1;
+  min-width: 120px; /* Impede que fiquem minúsculos em telas estreitas */
+}
+
+.input-with-btn {
+  display: flex;
+  gap: 5px;
+}
+
+/* BOTOES */
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-primary { background: var(--google-blue); color: white; padding: 12px; font-size: 14px; width: 100%; }
+.btn-primary:hover { background: var(--google-blue-hover); transform: translateY(-1px); }
+
+.btn-secondary { background: #e8eaed; color: var(--text-color); padding: 12px; font-size: 14px; width: 100%; }
+.btn-secondary:hover { background: #dadce0; transform: translateY(-1px); }
+
+.btn-primary-small, .btn-secondary-small, .btn-agora {
+  width: 40px;
+  padding: 0;
+  font-size: 16px;
+  flex-shrink: 0; /* Impede que o botão seja esmagado */
+}
+.btn-primary-small { background: var(--google-blue); color: white; }
+.btn-secondary-small, .btn-agora { background: #e8eaed; color: var(--text-color); }
+
+/* Bloco de Botões na base */
+.btn-block {
+  margin-top: auto; /* Empurra os botões para o final do ecrã! */
+  display: flex;
+  flex-direction: column; /* Coloca um botão sobre o outro para melhor leitura */
+  gap: 10px;
+  padding-top: 20px;
 }
 
 #mensagemSucesso {
@@ -192,50 +151,19 @@ button:active { transform: scale(0.95); }
   font-weight: bold;
   margin-top: 15px;
   border: 1px solid #188038;
-  box-shadow: 0 4px 6px rgba(13, 101, 45, 0.15);
 }
 
-/* --- MODAIS DO POPUP --- */
+/* Modais Dinâmicos */
 dialog {
-  width: 320px;
+  width: 90%; /* Adapta-se ao painel em vez de pixels fixos */
+  max-width: 380px;
   border: none;
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  animation: popIn 0.3s ease forwards;
 }
 dialog::backdrop { background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
 
-.lista-gerenciar {
-  list-style: none;
-  padding: 0;
-  margin: 10px 0 0 0;
-  max-height: 140px;
-  overflow-y: auto;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  background: white;
-}
-
-.lista-gerenciar li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  border-bottom: 1px solid #f1f3f4;
-  font-size: 13px;
-  transition: background 0.2s;
-}
-.lista-gerenciar li:hover { background: #f8f9fa; }
-
-.btn-excluir-item {
-  background: none;
-  color: var(--google-red);
-  padding: 4px 8px;
-  font-size: 12px;
-  border-radius: 4px;
-}
-.btn-excluir-item:hover {
-  background: #fce8e6;
-  transform: scale(1.1);
-}
+.lista-gerenciar { list-style: none; padding: 0; margin: 0 0 15px 0; max-height: 200px; overflow-y: auto; }
+.lista-gerenciar li { padding: 10px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+.btn-delete-chip { background: var(--google-red); color: white; font-size: 12px; padding: 4px 8px; border-radius: 4px; }
